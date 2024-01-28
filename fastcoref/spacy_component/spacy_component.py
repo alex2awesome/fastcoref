@@ -120,6 +120,7 @@ class FastCorefResolver:
         :type doc: Doc
         :return: A Doc object with the resolved text and coreference clusters added as attributes.
         """
+        prior_prog_bar = self.coref_model.enable_progress_bar
         if progress_bar == False:
             self.coref_model.enable_progress_bar = False
         preds = self.coref_model.predict(texts=[doc.text], verbose=progress_bar)
@@ -137,10 +138,13 @@ class FastCorefResolver:
             doc._.resolved_text = "".join(resolved)
         doc._.coref_clusters = clusters
         if progress_bar == False:
-            self.coref_model.enable_progress_bar = True
+            self.coref_model.enable_progress_bar = prior_prog_bar
         return doc
 
-    def pipe(self, stream, batch_size=512, resolve_text=False, attempt_recover=True, verbose=False):
+    def pipe(self, stream, batch_size=512, resolve_text=False, attempt_recover=True, inference_progress=True, verbose=False):
+        if inference_progress == False:
+            self.coref_model.enable_progress_bar = False
+            
         for docs in util.minibatch(stream, size=batch_size):
             preds = self.coref_model.predict(
                     texts=[doc.text for doc in docs], max_tokens_in_batch=self.max_tokens_in_batch)
