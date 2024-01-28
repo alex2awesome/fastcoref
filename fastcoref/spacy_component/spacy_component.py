@@ -48,7 +48,10 @@ class FastCorefResolver:
         :return: A list of indices of spans that contain at least one noun or proper noun.
         """
         spans = [doc.char_span(span[0],span[1]) for span in cluster]
-        spans_pos = [[token.pos_ for token in span] for span in spans]
+        spans_pos = []
+        for span in spans:
+            if span is not None:
+                spans_pos.append([token.pos_ for token in span])
         span_noun_indices = [
             i for i, span_pos in enumerate(spans_pos) if any(pos in span_pos for pos in ["NOUN", "PROPN"])
         ]
