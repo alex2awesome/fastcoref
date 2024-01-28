@@ -47,11 +47,12 @@ class FastCorefResolver:
         :param cluster: List[Tuple]
         :return: A list of indices of spans that contain at least one noun or proper noun.
         """
-        spans = [doc.char_span(span[0],span[1]) for span in cluster]
         spans_pos = []
-        for span in spans:
+        for span in cluster:
             if span is not None:
-                spans_pos.append([token.pos_ for token in span])
+                doc_span = doc.char_span(span[0], span[1]))
+                if doc_span is not None:
+                    spans_pos.append([token.pos_ for token in doc_span])
         span_noun_indices = [
             i for i, span_pos in enumerate(spans_pos) if any(pos in span_pos for pos in ["NOUN", "PROPN"])
         ]
@@ -167,17 +168,16 @@ class FastCorefResolver:
                                     num_errors += 1
                                 else:
                                     num_errors += 1
+                    
+                    doc._.resolved_text = "".join(resolved)
                     if num_errors > 0:
                         print(f'{num_docs_failed}/{len(docs)} docs failed. {total_failures}/{len(docs)} without recovery. {num_errors}/{num_corefs} cluster errors.')
                         num_docs_failed += 1
-                    else:
-                        doc._.resolved_text = "".join(resolved)
                     if (num_errors > 0) and attempt_recover:
                         try:
                             doc = self(doc, True)
                             num_errors = 0
                         except:
                             total_failures += 1
-                            doc._.resolved_text = "".join(resolved)
                 doc._.coref_clusters = clusters
                 yield doc
