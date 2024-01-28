@@ -220,10 +220,7 @@ class CorefModel(ABC):
         is_split_into_words - indicate if the texts input is tokenized
         """
         from datasets.utils.logging import disable_progress_bar, enable_progress_bar
-        if verbose:
-            enable_progress_bar()
-        else:
-            disable_progress_bar()
+        disable_progress_bar()
         # Input type checking for clearer error
         def _is_valid_text_input(texts, is_split_into_words):
             if isinstance(texts, str) and not is_split_into_words:
