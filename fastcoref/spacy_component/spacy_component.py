@@ -109,14 +109,14 @@ class FastCorefResolver:
             resolved[i] = ""
         return resolved
 
-    def __call__(self, doc: Doc, resolve_text=False) -> Doc:
+    def __call__(self, doc: Doc, resolve_text=False, progress_bar=False) -> Doc:
         """
         The function takes a doc object and returns a doc object
         :param doc: Doc
         :type doc: Doc
         :return: A Doc object with the resolved text and coreference clusters added as attributes.
         """
-        preds = self.coref_model.predict(texts=[doc.text])
+        preds = self.coref_model.predict(texts=[doc.text], verbose=progress_bar)
         clusters = preds[0].get_clusters(as_strings=False)
         if resolve_text:
             resolved = list(tok.text_with_ws for tok in doc)
@@ -135,7 +135,8 @@ class FastCorefResolver:
     def pipe(self, stream, batch_size=512, resolve_text=False, verbose=False):
         for docs in util.minibatch(stream, size=batch_size):
             preds = self.coref_model.predict(
-                    texts=[doc.text for doc in docs],max_tokens_in_batch=self.max_tokens_in_batch)
+                    texts=[doc.text for doc in docs], max_tokens_in_batch=self.max_tokens_in_batch)
+            num_docs_failed = 0
             for idx,pred in enumerate(preds):
                 clusters = pred.get_clusters(as_strings=False)
                 doc = docs[idx] 
@@ -157,8 +158,8 @@ class FastCorefResolver:
                             else:
                                 num_errors += 1
                     if num_errors > 0:
-                        print(f'{num_errors} errors out of {len(clusters)}. Doc: {str(doc)[:100]}...')
-                        print('redoing...')
+                        print(f'{num_docs_failed}/{len(docs)} docs failed with {num_errors}/{len(clusters)} errors. Doc: {str(doc)[:100]}... Redoing...')
+                        num_docs_failed += 1
                         try:
                             doc = self(doc, True)
                             print('redo succeeded!')
