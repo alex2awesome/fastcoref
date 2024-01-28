@@ -209,7 +209,9 @@ class CorefModel(ABC):
                 texts: Union[str, List[str], List[List[str]]],  # similar to huggingface tokenizer inputs
                 is_split_into_words: bool = False,
                 max_tokens_in_batch: int = 10000,
-                output_file: str = None):
+                output_file: str = None,
+                verbose: bool = True,
+               ):
         """
         texts (str, List[str], List[List[str]]) — The sequence or batch of sequences to be encoded.
         Each sequence can be a string or a list of strings (pretokenized string).
@@ -217,7 +219,11 @@ class CorefModel(ABC):
         (to lift the ambiguity with a batch of sequences).
         is_split_into_words - indicate if the texts input is tokenized
         """
-
+        from datasets.utils.logging import disable_progress_bar, enable_progress_bar
+        if verbose:
+            enable_progress_bar()
+        else:
+            disable_progress_bar()
         # Input type checking for clearer error
         def _is_valid_text_input(texts, is_split_into_words):
             if isinstance(texts, str) and not is_split_into_words:
