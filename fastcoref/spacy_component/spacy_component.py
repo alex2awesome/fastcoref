@@ -139,7 +139,7 @@ class FastCorefResolver:
             self.coref_model.enable_progress_bar = True
         return doc
 
-    def pipe(self, stream, batch_size=512, resolve_text=False, verbose=False):
+    def pipe(self, stream, batch_size=512, resolve_text=False, attempt_recover=True, verbose=False):
         for docs in util.minibatch(stream, size=batch_size):
             preds = self.coref_model.predict(
                     texts=[doc.text for doc in docs], max_tokens_in_batch=self.max_tokens_in_batch)
@@ -170,13 +170,14 @@ class FastCorefResolver:
                     if num_errors > 0:
                         print(f'{num_docs_failed}/{len(docs)} docs failed. {total_failures}/{len(docs)} without recovery. {num_errors}/{num_corefs} cluster errors.')
                         num_docs_failed += 1
+                    else:
+                        doc._.resolved_text = "".join(resolved)
+                    if (num_errors > 0) and attempt_recover:
                         try:
                             doc = self(doc, True)
                             num_errors = 0
                         except:
                             total_failures += 1
                             doc._.resolved_text = "".join(resolved)
-                    else:
-                        doc._.resolved_text = "".join(resolved)
                 doc._.coref_clusters = clusters
                 yield doc
