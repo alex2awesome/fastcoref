@@ -144,26 +144,29 @@ class FastCorefResolver:
                     resolved = list(tok.text_with_ws for tok in doc)
                     all_spans = [span for cluster in clusters for span in cluster]
                     num_errors = 0
+                    num_corefs = 0
                     for cluster in clusters:
-                        try:
-                            indices = self._get_span_noun_indices(doc,cluster)
-                            if indices:
-                                mention_span, mention = self._get_cluster_head(doc, cluster, indices)
+                        indices = self._get_span_noun_indices(doc,cluster)
+                        if indices:
+                            mention_span, mention = self._get_cluster_head(doc, cluster, indices)
+                            try:
                                 for coref in cluster:
+                                    num_corefs += 1
                                     if coref != mention and not self._is_containing_other_spans(coref, all_spans):
                                         self._core_logic_part(doc, coref, resolved, mention_span)
-                        except TypeError as e:
-                            if verbose:
-                                print(f'error: {e} on cluster {str(cluster)} of {str(doc)}')
-                            else:
-                                num_errors += 1
+                            except TypeError as e:
+                                if verbose:
+                                    print(f'error: {e} on cluster {str(cluster)} of {str(doc)}')
+                                else:
+                                    num_errors += 1
                     if num_errors > 0:
-                        print(f'{num_docs_failed}/{len(docs)} docs failed. {total_failures}/{len(docs)} without recovery. {num_errors}/{len(clusters)} cluster errors.')
+                        print(f'{num_docs_failed}/{len(docs)} docs failed. {total_failures}/{len(docs)} without recovery. {num_errors}/{num_corefs} cluster errors.')
                         num_docs_failed += 1
                         try:
                             doc = self(doc, True)
                         except:
                             total_failures += 1
+                            doc._.resolved_text = "".join(resolved)
                     else:
                         doc._.resolved_text = "".join(resolved)
                 doc._.coref_clusters = clusters
