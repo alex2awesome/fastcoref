@@ -117,6 +117,8 @@ class FastCorefResolver:
         :return: A Doc object with the resolved text and coreference clusters added as attributes.
         """
         preds = self.coref_model.predict(texts=[doc.text], verbose=progress_bar)
+        if progress_bar == False:
+            self.coref_model.enable_progress_bar = False
         clusters = preds[0].get_clusters(as_strings=False)
         if resolve_text:
             resolved = list(tok.text_with_ws for tok in doc)
@@ -130,6 +132,8 @@ class FastCorefResolver:
                             self._core_logic_part(doc, coref, resolved, mention_span)
             doc._.resolved_text = "".join(resolved)
         doc._.coref_clusters = clusters
+        if progress_bar == False:
+            self.coref_model.enable_progress_bar = True
         return doc
 
     def pipe(self, stream, batch_size=512, resolve_text=False, verbose=False):
@@ -146,11 +150,7 @@ class FastCorefResolver:
                     num_errors = 0
                     num_corefs = 0
                     for cluster in clusters:
-                        try:
-                            indices = self._get_span_noun_indices(doc,cluster)
-                        except:
-                            num_errors += 1
-                            indices = None
+                        indices = self._get_span_noun_indices(doc, cluster)
                         if indices:
                             mention_span, mention = self._get_cluster_head(doc, cluster, indices)
                             try:
