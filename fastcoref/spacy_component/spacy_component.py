@@ -139,16 +139,20 @@ class FastCorefResolver:
             for idx,pred in enumerate(preds):
                 clusters = pred.get_clusters(as_strings=False)
                 doc = docs[idx] 
-                if resolve_text:    
+                if resolve_text:
                     resolved = list(tok.text_with_ws for tok in doc)
                     all_spans = [span for cluster in clusters for span in cluster]
                     for cluster in clusters:
+                        try:
                             indices = self._get_span_noun_indices(doc,cluster)
                             if indices:
                                 mention_span, mention = self._get_cluster_head(doc, cluster, indices)
                                 for coref in cluster:
                                     if coref != mention and not self._is_containing_other_spans(coref, all_spans):
                                         self._core_logic_part(doc, coref, resolved, mention_span)
+                        except TypeError as e:
+                            print(f'error: {e} on {str(doc)}')
+                            continue
                     doc._.resolved_text = "".join(resolved)
                 doc._.coref_clusters = clusters
                 yield doc
