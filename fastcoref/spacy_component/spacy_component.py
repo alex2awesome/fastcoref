@@ -119,9 +119,9 @@ class FastCorefResolver:
         :type doc: Doc
         :return: A Doc object with the resolved text and coreference clusters added as attributes.
         """
-        preds = self.coref_model.predict(texts=[doc.text], verbose=progress_bar)
         if progress_bar == False:
             self.coref_model.enable_progress_bar = False
+        preds = self.coref_model.predict(texts=[doc.text], verbose=progress_bar)
         clusters = preds[0].get_clusters(as_strings=False)
         if resolve_text:
             resolved = list(tok.text_with_ws for tok in doc)
@@ -161,7 +161,7 @@ class FastCorefResolver:
                                     num_corefs += 1
                                     if coref != mention and not self._is_containing_other_spans(coref, all_spans):
                                         self._core_logic_part(doc, coref, resolved, mention_span)
-                            except TypeError as e:
+                            except (TypeError, AttributeError) as e:
                                 if verbose:
                                     print(f'error: {e} on cluster {str(cluster)} of {str(doc)}')
                                     num_errors += 1
@@ -172,6 +172,7 @@ class FastCorefResolver:
                         num_docs_failed += 1
                         try:
                             doc = self(doc, True)
+                            num_errors = 0
                         except:
                             total_failures += 1
                             doc._.resolved_text = "".join(resolved)
