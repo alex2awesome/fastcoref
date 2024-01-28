@@ -50,7 +50,7 @@ class FastCorefResolver:
         spans_pos = []
         for span in cluster:
             if span is not None:
-                doc_span = doc.char_span(span[0], span[1]))
+                doc_span = doc.char_span(span[0], span[1])
                 if doc_span is not None:
                     spans_pos.append([token.pos_ for token in doc_span])
         span_noun_indices = [
