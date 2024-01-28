@@ -154,7 +154,7 @@ class FastCorefResolver:
                             if verbose:
                                 print(f'error: {e} on cluster {str(cluster)} of {str(doc)}')
                             else:
-                                print(f'error: {e} on cluster {str(cluster)} of {str(doc)[:100]...}')
+                                print(f'error: {e} on cluster {str(cluster)} of {str(doc)[:100] + '...}')
                     doc._.resolved_text = "".join(resolved)
                 doc._.coref_clusters = clusters
                 yield doc
