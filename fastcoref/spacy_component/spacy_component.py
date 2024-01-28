@@ -142,6 +142,7 @@ class FastCorefResolver:
                 if resolve_text:
                     resolved = list(tok.text_with_ws for tok in doc)
                     all_spans = [span for cluster in clusters for span in cluster]
+                    num_errors = 0
                     for cluster in clusters:
                         try:
                             indices = self._get_span_noun_indices(doc,cluster)
@@ -154,7 +155,15 @@ class FastCorefResolver:
                             if verbose:
                                 print(f'error: {e} on cluster {str(cluster)} of {str(doc)}')
                             else:
-                                print(f'error: {e} on cluster {str(cluster)} of {str(doc)[:100]}...')
-                    doc._.resolved_text = "".join(resolved)
+                                num_errors += 1
+                    if num_errors > 0:
+                        print(f'{num_errors} errors out of {len(clusters)}. Doc: {str(doc)[:100]}...')
+                        print('trying manually...')
+                        try:
+                            doc = self(doc, True)
+                        except:
+                            print('manual failed...')
+                    else:
+                        doc._.resolved_text = "".join(resolved)
                 doc._.coref_clusters = clusters
                 yield doc
