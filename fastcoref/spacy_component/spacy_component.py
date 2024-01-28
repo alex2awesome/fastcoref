@@ -156,8 +156,8 @@ class FastCorefResolver:
                     for cluster in clusters:
                         indices = self._get_span_noun_indices(doc, cluster)
                         if indices:
-                            mention_span, mention = self._get_cluster_head(doc, cluster, indices)
                             try:
+                                mention_span, mention = self._get_cluster_head(doc, cluster, indices)
                                 for coref in cluster:
                                     num_corefs += 1
                                     if coref != mention and not self._is_containing_other_spans(coref, all_spans):
