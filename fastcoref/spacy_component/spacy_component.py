@@ -158,11 +158,12 @@ class FastCorefResolver:
                                 num_errors += 1
                     if num_errors > 0:
                         print(f'{num_errors} errors out of {len(clusters)}. Doc: {str(doc)[:100]}...')
-                        print('trying manually...')
+                        print('redoing...')
                         try:
                             doc = self(doc, True)
+                            print('redo succeeded!')
                         except:
-                            print('manual failed...')
+                            print('redo failed, moving on...')
                     else:
                         doc._.resolved_text = "".join(resolved)
                 doc._.coref_clusters = clusters
