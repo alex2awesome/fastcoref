@@ -146,7 +146,11 @@ class FastCorefResolver:
                     num_errors = 0
                     num_corefs = 0
                     for cluster in clusters:
-                        indices = self._get_span_noun_indices(doc,cluster)
+                        try:
+                            indices = self._get_span_noun_indices(doc,cluster)
+                        except:
+                            num_errors += 1
+                            indices = None
                         if indices:
                             mention_span, mention = self._get_cluster_head(doc, cluster, indices)
                             try:
@@ -157,6 +161,7 @@ class FastCorefResolver:
                             except TypeError as e:
                                 if verbose:
                                     print(f'error: {e} on cluster {str(cluster)} of {str(doc)}')
+                                    num_errors += 1
                                 else:
                                     num_errors += 1
                     if num_errors > 0:
