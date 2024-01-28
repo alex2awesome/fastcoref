@@ -132,7 +132,7 @@ class FastCorefResolver:
         doc._.coref_clusters = clusters
         return doc
 
-    def pipe(self, stream, batch_size=512, resolve_text=False):
+    def pipe(self, stream, batch_size=512, resolve_text=False, verbose=False):
         for docs in util.minibatch(stream, size=batch_size):
             preds = self.coref_model.predict(
                     texts=[doc.text for doc in docs],max_tokens_in_batch=self.max_tokens_in_batch)
@@ -151,8 +151,10 @@ class FastCorefResolver:
                                     if coref != mention and not self._is_containing_other_spans(coref, all_spans):
                                         self._core_logic_part(doc, coref, resolved, mention_span)
                         except TypeError as e:
-                            print(f'error: {e} on {str(doc)}')
-                            continue
+                            if verbose:
+                                print(f'error: {e} on cluster {str(cluster)} of {str(doc)}')
+                            else:
+                                print(f'error: {e} on cluster {str(cluster)} of {str(doc)[:100]...}')
                     doc._.resolved_text = "".join(resolved)
                 doc._.coref_clusters = clusters
                 yield doc
